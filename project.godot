@@ -1,0 +1,22 @@
+; Engine configuration file.
+; It is best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+
+config_version=5
+
+[application]
+
+config/name="Gua UI Lab"
+run/main_scene="res://main.tscn"
+
+[display]
+
+window/size/viewport_width=541
+window/size/viewport_height=857
+window/size/resizable=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
