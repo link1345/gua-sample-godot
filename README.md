@@ -14,7 +14,7 @@ Godot 4.7で動作する2画面のUIサンプルです。`Start`で2画面目へ
 UI自動化には[Gua](https://github.com/link1345/gua) v0.12.0のGodot GDScriptアドオンを使用しています。実行中は `ws://127.0.0.1:8765` でGua bridgeが待ち受け、標準Godot Controlツリーを自動的に公開します。
 
 ```powershell
-C:\Users\testk\.local\bin\Godot_v4.7-stable_win64.exe --path .
+Godot_v4.7-stable_win64.exe --path .
 ```
 
 ## UIテスト
@@ -22,7 +22,7 @@ C:\Users\testk\.local\bin\Godot_v4.7-stable_win64.exe --path .
 NUnitから`Gua.Testing.Godot`を使い、実際のGodotプロセスとSemantic UI Treeを操作します。
 
 ```powershell
-$env:GODOT_EXECUTABLE = "C:\Users\testk\.local\bin\Godot_v4.7-stable_win64_console.exe"
+$env:GODOT_EXECUTABLE = "Godot_v4.7-stable_win64_console.exe"
 dotnet test tests\GuaUiLab.Tests.csproj
 ```
 
