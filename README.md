@@ -2,6 +2,8 @@
 
 これは[Gua](https://github.com/link1345/gua)のGodot GDScript版サンプルプログラムです。AIとの次のようなやり取りを通じて、UIの実装からテストまで作られています。
 
+https://youtube.com/live/25UtypMUlcg?feature=share
+
 > 「素材を使って2画面のUIを作り、Guaで操作できるようにしてください」  
 > 「Loading中はBackを無効にし、終了確認ダイアログも追加してください」  
 > 「画面サイズが変わってもデザインを維持してください」  
