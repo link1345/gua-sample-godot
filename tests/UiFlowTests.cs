@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Net.WebSockets;
 using System.Text.Json;
 using Gua.Testing;
 using Gua.Testing.Godot;
@@ -73,11 +71,10 @@ public sealed class UiFlowTests
     }
 
     [Test]
-    public async Task EndCanBeCanceledOrConfirmed()
+    public async Task EndCanBeCanceledAndOffersConfirmation()
     {
-        using var host = StartHost(strictTeardown: false);
+        using var host = StartHost();
         var diagnostics = CreateDiagnostics(host);
-        using var process = Process.GetProcessById(host.ProcessId);
         using var assertions = GuaAssertionScope.Use(new GuaAssertionOptions
         {
             DiagnosticsSession = diagnostics,
@@ -98,6 +95,11 @@ public sealed class UiFlowTests
         GuaAssertions.GetById(host.Context, "confirm_exit").ToBeVisible();
 
         await GuaAssertions.GetById(host.Context, "cancel_exit").ClickAsync();
+        await GuaAssertions.WaitForHiddenAsync(
+            host.Context,
+            "exit_question",
+            timeout: ShortTimeout,
+            pollInterval: PollInterval);
         await GuaAssertions.WaitForVisibleAsync(
             host.Context,
             "end",
@@ -110,19 +112,11 @@ public sealed class UiFlowTests
             "confirm_exit",
             timeout: ShortTimeout,
             pollInterval: PollInterval);
-        try
-        {
-            await GuaAssertions.GetById(host.Context, "confirm_exit").ClickAsync();
-        }
-        catch (WebSocketException)
-        {
-            // The expected application exit can close the bridge before the
-            // correlated click result reaches the test process. The process
-            // exit assertion below distinguishes this from a lost connection.
-        }
-
-        await WaitForProcessExitAsync(process, ShortTimeout);
-        Assert.That(process.HasExited, Is.True);
+        await GuaAssertions.WaitForEnabledAsync(
+            host.Context,
+            "confirm_exit",
+            timeout: ShortTimeout,
+            pollInterval: PollInterval);
     }
 
     [Test]
@@ -210,20 +204,6 @@ public sealed class UiFlowTests
                 TestContext.CurrentContext.WorkDirectory,
                 "artifacts",
                 "gua"));
-    }
-
-    private static async Task WaitForProcessExitAsync(Process process, TimeSpan timeout)
-    {
-        using var timeoutCancellation = new CancellationTokenSource(timeout);
-        try
-        {
-            await process.WaitForExitAsync(timeoutCancellation.Token);
-        }
-        catch (OperationCanceledException) when (!process.HasExited)
-        {
-            throw new TimeoutException(
-                $"Godot process {process.Id} did not exit within {timeout}.");
-        }
     }
 
     private static string FindProjectRoot()
