@@ -1,0 +1,39 @@
+name: Gua UI tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run Godot Gua tests
+        # gua-tester has not published a v1 tag yet, so pin the current main commit.
+        uses: link1345/gua-tester@c6064fa9c2ca6d65e5d0d309f214cecfdc43bd22
+        with:
+          project-path: .
+          test-project: tests/GuaUiLab.Tests.csproj
+          godot-version: "4.7"
+          godot-status: stable
+          gua-plugin-tag: gua-v0.15.0
+
+      - name: Upload test diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: gua-test-diagnostics
+          path: |
+            **/TestResults/**
+            **/artifacts/gua/**
+          if-no-files-found: ignore
