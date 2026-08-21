@@ -1,4 +1,6 @@
-# Gua UI Lab
+# Gua UI Lab for Godot
+
+日本語 | [English](README.md)
 
 これは[Gua](https://github.com/link1345/gua)のGodot GDScript版サンプルプログラムです。AIとの次のようなやり取りを通じて、UIの実装からテストまで作られています。
 
