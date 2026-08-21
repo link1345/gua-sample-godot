@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      visual-report-demo:
+        description: Publish an intentional pixel difference to the Pages viewer.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -13,20 +19,42 @@ jobs:
   test:
     runs-on: windows-latest
     timeout-minutes: 15
+    outputs:
+      pages-ready: ${{ steps.pages-report.outcome == 'success' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Run Godot Gua tests
+        id: gua-tests
         uses: link1345/gua-tester@v1.3
         env:
           GUA_VISUAL_VARIANT: windows-godot-4.7-gl-compatibility-541x700
+          GUA_VISUAL_REPORT_DEMO: ${{ inputs.visual-report-demo && '1' || '0' }}
         with:
           project-path: .
           test-project: tests/GuaUiLab.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
           gua-plugin-tag: gua-v0.15.0
+
+      - name: Normalize visual report outcome
+        id: visual-outcome
+        if: always()
+        shell: pwsh
+        env:
+          TEST_OUTCOME: ${{ steps.gua-tests.outcome }}
+          VISUAL_REPORT_DEMO: ${{ inputs.visual-report-demo }}
+        run: |
+          $outcome = if ($env:TEST_OUTCOME -in @("success", "failure", "cancelled")) {
+            $env:TEST_OUTCOME
+          } else {
+            "failure"
+          }
+          if ($env:VISUAL_REPORT_DEMO -eq "true") {
+            $outcome = "failure"
+          }
+          "value=$outcome" >> $env:GITHUB_OUTPUT
 
       - name: Upload test diagnostics
         if: ${{ always() }}
@@ -37,3 +65,36 @@ jobs:
             **/TestResults/**
             **/artifacts/gua/**
           if-no-files-found: ignore
+
+      - name: Upload pull-request visual report
+        if: failure() && github.event_name == 'pull_request'
+        uses: link1345/gua-tester/visual-report@v1.4
+        with:
+          artifact-path: artifacts/gua
+          test-outcome: ${{ steps.visual-outcome.outputs.value }}
+          upload-target: workflow
+          workflow-artifact-name: gua-visual-report
+
+      - name: Prepare latest master visual report
+        id: pages-report
+        if: always() && (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch')
+        uses: link1345/gua-tester/visual-report@v1.4
+        with:
+          artifact-path: artifacts/gua
+          test-outcome: ${{ steps.visual-outcome.outputs.value }}
+          upload-target: pages
+
+  deploy-visual-report:
+    needs: test
+    if: always() && (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch') && needs.test.outputs.pages-ready == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy visual report
+        id: deployment
+        uses: actions/deploy-pages@v4

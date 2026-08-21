@@ -44,4 +44,21 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) を使用し、`main` / `master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v0.15.0の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
+`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) を使用し、`master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v0.15.0の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
+
+### Visual差分Viewer
+
+pull requestでVisual比較が失敗すると、`visual-report@v1.4`が`comparison.json`とPNGをAstro製の静的Viewerへ変換し、`gua-visual-report`という通常のActions artifactとして保存します。ViewerにはExpected／Diff／Actualの3列表示とExpected／Actual比較スライダーがあります。
+
+`master`へのpushと手動実行では、最新結果をGitHub Pages artifactとしてアップロードし、専用jobからPagesへdeployします。repositoryのPages sourceを事前に **GitHub Actions** へ設定してください。
+
+手動実行で`visual-report-demo`を有効にすると、`VisualReportViewerDemoProducesPixelDifferenceArtifact`が同じ解像度のtitle画面とloading画面を比較し、意図的なpixel差分を生成します。テスト自体は期待した比較失敗を検証して成功し、workflowはViewerへ渡すoutcomeだけを`failure`にするため、3画像とスライダーを実際に確認できます。
+
+通常artifactをダウンロードしてローカル確認する場合、Viewerは相対URLの`report.json`を読み込むため、`index.html`を直接開かず展開先をHTTP配信します。
+
+```powershell
+python -m http.server 8000
+```
+
+> [!WARNING]
+> screenshotにはゲーム画面へ描画された秘密情報や個人情報が含まれる可能性があります。特にpublic repositoryでPagesを有効にする前に、公開内容を確認してください。
