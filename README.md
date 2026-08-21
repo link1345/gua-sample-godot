@@ -18,7 +18,7 @@ This two-screen UI sample runs on Godot 4.7. `Start` opens the second screen, wh
 
 The window is resizable. The UI scales uniformly while preserving its 541×857 design aspect ratio, and any space outside that ratio is rendered as black letterboxing.
 
-UI automation uses the [Gua](https://github.com/link1345/gua) v0.15.0 Godot GDScript add-on. At runtime, the Gua bridge listens on `ws://127.0.0.1:8765` and automatically exposes the standard Godot Control tree.
+UI automation uses the [Gua](https://github.com/link1345/gua) v1.18.0 Godot GDScript add-on. At runtime, the Gua bridge listens on `ws://127.0.0.1:8765` and automatically exposes the standard Godot Control tree.
 
 ```powershell
 Godot_v4.7-stable_win64.exe --path .
@@ -49,11 +49,11 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2.1 (`link1345/gua-tester/godot@v2.1`) to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v0.15.0 add-on used by the NuGet packages, so the repository does not need to include its DLLs.
+`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2.2 (`link1345/gua-tester/godot@v2.2`) to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v1.18.0 add-on used by the NuGet packages, so the repository does not need to include its DLLs.
 
 ### Visual difference viewer
 
-When a visual comparison fails in a pull request, `visual-report@v2.1` turns `comparison.json` and its PNGs into an Astro-based static viewer and stores it as the normal `gua-visual-report` Actions artifact. The viewer provides three-column Expected, Diff, and Actual images as well as an Expected/Actual comparison slider.
+When a visual comparison fails in a pull request, `visual-report@v2.2` turns `comparison.json` and its PNGs into an Astro-based static viewer and stores it as the normal `gua-visual-report` Actions artifact. The viewer provides three-column Expected, Diff, and Actual images as well as an Expected/Actual comparison slider.
 
 On pushes to `master` and manual runs, the latest report is uploaded as a GitHub Pages artifact and deployed by a dedicated job. Configure the repository's Pages source as **GitHub Actions** first.
 
