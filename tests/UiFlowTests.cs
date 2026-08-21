@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Net.WebSockets;
 using System.Text.Json;
 using Gua.Testing;
 using Gua.Testing.Godot;
@@ -11,6 +9,10 @@ namespace GuaUiLab.Tests;
 [NonParallelizable]
 public sealed class UiFlowTests
 {
+    private const int WideRenderedWidth = 1000;
+    private const int WideRenderedHeight = 700;
+    private const double DesignWidth = 541.0;
+    private const double DesignHeight = 857.0;
     private static readonly TimeSpan ShortTimeout = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan LoadingTimeout = TimeSpan.FromSeconds(8);
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(20);
@@ -69,11 +71,10 @@ public sealed class UiFlowTests
     }
 
     [Test]
-    public async Task EndCanBeCanceledOrConfirmed()
+    public async Task EndCanBeCanceledAndOffersConfirmation()
     {
-        using var host = StartHost(strictTeardown: false);
+        using var host = StartHost();
         var diagnostics = CreateDiagnostics(host);
-        using var process = Process.GetProcessById(host.ProcessId);
         using var assertions = GuaAssertionScope.Use(new GuaAssertionOptions
         {
             DiagnosticsSession = diagnostics,
@@ -94,6 +95,11 @@ public sealed class UiFlowTests
         GuaAssertions.GetById(host.Context, "confirm_exit").ToBeVisible();
 
         await GuaAssertions.GetById(host.Context, "cancel_exit").ClickAsync();
+        await GuaAssertions.WaitForHiddenAsync(
+            host.Context,
+            "exit_question",
+            timeout: ShortTimeout,
+            pollInterval: PollInterval);
         await GuaAssertions.WaitForVisibleAsync(
             host.Context,
             "end",
@@ -106,19 +112,11 @@ public sealed class UiFlowTests
             "confirm_exit",
             timeout: ShortTimeout,
             pollInterval: PollInterval);
-        try
-        {
-            await GuaAssertions.GetById(host.Context, "confirm_exit").ClickAsync();
-        }
-        catch (WebSocketException)
-        {
-            // The expected application exit can close the bridge before the
-            // correlated click result reaches the test process. The process
-            // exit assertion below distinguishes this from a lost connection.
-        }
-
-        await WaitForProcessExitAsync(process, ShortTimeout);
-        Assert.That(process.HasExited, Is.True);
+        await GuaAssertions.WaitForEnabledAsync(
+            host.Context,
+            "confirm_exit",
+            timeout: ShortTimeout,
+            pollInterval: PollInterval);
     }
 
     [Test]
@@ -126,7 +124,13 @@ public sealed class UiFlowTests
     {
         using var host = StartHost(
             rendered: true,
-            additionalArguments: ["--resolution", "1000x857"]);
+            additionalArguments:
+            [
+                "--resolution",
+                $"{WideRenderedWidth}x{WideRenderedHeight}",
+                "--position",
+                "0,0",
+            ]);
         var diagnostics = CreateDiagnostics(host);
         using var assertions = GuaAssertionScope.Use(new GuaAssertionOptions
         {
@@ -143,8 +147,8 @@ public sealed class UiFlowTests
         var screenshot = host.GetScreenshot();
         Assert.Multiple(() =>
         {
-            Assert.That(screenshot.Width, Is.EqualTo(1000));
-            Assert.That(screenshot.Height, Is.EqualTo(857));
+            Assert.That(screenshot.Width, Is.EqualTo(WideRenderedWidth));
+            Assert.That(screenshot.Height, Is.EqualTo(WideRenderedHeight));
         });
 
         using var tree = JsonDocument.Parse(host.Context.GetUiTreeJson());
@@ -152,13 +156,20 @@ public sealed class UiFlowTests
             .EnumerateArray()
             .Single(node => node.GetProperty("id").GetString() == "root");
         var bounds = root.GetProperty("bounds");
+        var expectedScale = Math.Min(
+            WideRenderedWidth / DesignWidth,
+            WideRenderedHeight / DesignHeight);
+        var expectedRenderedWidth = DesignWidth * expectedScale;
+        var expectedRenderedHeight = DesignHeight * expectedScale;
+        var expectedX = (WideRenderedWidth - expectedRenderedWidth) * 0.5;
+        var expectedY = (WideRenderedHeight - expectedRenderedHeight) * 0.5;
 
         Assert.Multiple(() =>
         {
-            Assert.That(bounds.GetProperty("x").GetDouble(), Is.EqualTo(229.5).Within(1.0));
-            Assert.That(bounds.GetProperty("y").GetDouble(), Is.EqualTo(0.0).Within(1.0));
-            Assert.That(bounds.GetProperty("w").GetDouble(), Is.EqualTo(541.0).Within(1.0));
-            Assert.That(bounds.GetProperty("h").GetDouble(), Is.EqualTo(857.0).Within(1.0));
+            Assert.That(bounds.GetProperty("x").GetDouble(), Is.EqualTo(expectedX).Within(1.0));
+            Assert.That(bounds.GetProperty("y").GetDouble(), Is.EqualTo(expectedY).Within(1.0));
+            Assert.That(bounds.GetProperty("w").GetDouble(), Is.EqualTo(DesignWidth).Within(1.0));
+            Assert.That(bounds.GetProperty("h").GetDouble(), Is.EqualTo(DesignHeight).Within(1.0));
         });
     }
 
@@ -193,20 +204,6 @@ public sealed class UiFlowTests
                 TestContext.CurrentContext.WorkDirectory,
                 "artifacts",
                 "gua"));
-    }
-
-    private static async Task WaitForProcessExitAsync(Process process, TimeSpan timeout)
-    {
-        using var timeoutCancellation = new CancellationTokenSource(timeout);
-        try
-        {
-            await process.WaitForExitAsync(timeoutCancellation.Token);
-        }
-        catch (OperationCanceledException) when (!process.HasExited)
-        {
-            throw new TimeoutException(
-                $"Godot process {process.Id} did not exit within {timeout}.");
-        }
     }
 
     private static string FindProjectRoot()

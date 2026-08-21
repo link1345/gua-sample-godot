@@ -1,0 +1,1 @@
+# Keep .NET tests and visual baselines out of Godot's resource import scan.
