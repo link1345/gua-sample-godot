@@ -13,7 +13,7 @@ Godot 4.7で動作する2画面のUIサンプルです。`Start`で2画面目へ
 
 ウィンドウはリサイズ可能です。541×857のデザイン比率を維持して一様に拡大・縮小し、画面比率から余る領域は黒いレターボックスとして表示します。
 
-UI自動化には[Gua](https://github.com/link1345/gua) v0.12.0のGodot GDScriptアドオンを使用しています。実行中は `ws://127.0.0.1:8765` でGua bridgeが待ち受け、標準Godot Controlツリーを自動的に公開します。
+UI自動化には[Gua](https://github.com/link1345/gua) v0.15.0のGodot GDScriptアドオンを使用しています。実行中は `ws://127.0.0.1:8765` でGua bridgeが待ち受け、標準Godot Controlツリーを自動的に公開します。
 
 ```powershell
 Godot_v4.7-stable_win64.exe --path .
@@ -29,3 +29,19 @@ dotnet test tests\GuaUiLab.Tests.csproj
 ```
 
 失敗時のGua UI Tree、ログ、Godot標準出力・標準エラーなどは、テスト出力ディレクトリの`artifacts/gua`に保存されます。
+
+### Visual / Recording検証
+
+`Gua.Testing.Visual` で初期画面をレビュー済みPNGと比較し、画像欠落、配置ずれ、意図しないオーバーレイを検出します。基準画像を意図的に更新する場合だけ、差分を確認した上で次を実行します。
+
+```powershell
+$env:GUA_UPDATE_BASELINES = "1"
+dotnet test tests\GuaUiLab.Tests.csproj --filter TitleScreenMatchesReviewedVisualBaseline
+Remove-Item Env:GUA_UPDATE_BASELINES
+```
+
+`Gua.Testing.Recording` では `End` → `Cancel` のセマンティック操作を実際に記録し、JSONへの保存・再読込・同一Godotセッションへの再生まで検証します。成功時の記録JSONも `artifacts/gua/recordings` に保存されます。
+
+## GitHub Actions
+
+`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) を使用し、`main` / `master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v0.15.0の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
