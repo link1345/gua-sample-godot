@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Godot Gua tests
         id: gua-tests
-        uses: link1345/gua-tester/godot@v2
+        uses: link1345/gua-tester/godot@v2.1
         env:
           GUA_VISUAL_VARIANT: windows-godot-4.7-gl-compatibility-541x700
           GUA_VISUAL_REPORT_DEMO: ${{ inputs.visual-report-demo && '1' || '0' }}
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload pull-request visual report
         if: failure() && github.event_name == 'pull_request'
-        uses: link1345/gua-tester/visual-report@v2
+        uses: link1345/gua-tester/visual-report@v2.1
         with:
           artifact-path: artifacts/gua
           test-outcome: ${{ steps.visual-outcome.outputs.value }}
@@ -78,7 +78,7 @@ jobs:
       - name: Prepare latest master visual report
         id: pages-report
         if: always() && (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch')
-        uses: link1345/gua-tester/visual-report@v2
+        uses: link1345/gua-tester/visual-report@v2.1
         with:
           artifact-path: artifacts/gua
           test-outcome: ${{ steps.visual-outcome.outputs.value }}
