@@ -1,38 +1,41 @@
 # Gua UI Lab
 
-これは[Gua](https://github.com/link1345/gua)のGodot GDScript版サンプルプログラムです。AIとの次のようなやり取りを通じて、UIの実装からテストまで作られています。
+This is a Godot GDScript sample project for [Gua](https://github.com/link1345/gua). Its UI and tests were created through conversations with AI such as the following:
 
 https://youtube.com/live/25UtypMUlcg?feature=share
 
-> 「素材を使って2画面のUIを作り、Guaで操作できるようにしてください」  
-> 「Loading中はBackを無効にし、終了確認ダイアログも追加してください」  
-> 「画面サイズが変わってもデザインを維持してください」  
-> 「GuaとNUnitを使ったUIテストを作ってください」
+> “Use the provided assets to create a two-screen UI that can be operated through Gua.”
+>
+> “Disable Back while loading, and add an exit confirmation dialog.”
+>
+> “Preserve the design when the window size changes.”
+>
+> “Create UI tests using Gua and NUnit.”
 
-Godot 4.7で動作する2画面のUIサンプルです。`Start`で2画面目へ移動し、6秒間のLoading中は`Back`が無効になります。Loading終了後は`Back`で1画面目へ戻れます。`End`では終了確認が表示され、`Cancel`で戻り、`OK`で終了します。
+This two-screen UI sample runs on Godot 4.7. `Start` opens the second screen, where `Back` remains disabled during a six-second Loading state. After loading finishes, `Back` returns to the first screen. `End` opens an exit confirmation dialog; `Cancel` closes it, and `OK` exits the application.
 
-ウィンドウはリサイズ可能です。541×857のデザイン比率を維持して一様に拡大・縮小し、画面比率から余る領域は黒いレターボックスとして表示します。
+The window is resizable. The UI scales uniformly while preserving its 541×857 design aspect ratio, and any space outside that ratio is rendered as black letterboxing.
 
-UI自動化には[Gua](https://github.com/link1345/gua) v0.15.0のGodot GDScriptアドオンを使用しています。実行中は `ws://127.0.0.1:8765` でGua bridgeが待ち受け、標準Godot Controlツリーを自動的に公開します。
+UI automation uses the [Gua](https://github.com/link1345/gua) v0.15.0 Godot GDScript add-on. At runtime, the Gua bridge listens on `ws://127.0.0.1:8765` and automatically exposes the standard Godot Control tree.
 
 ```powershell
 Godot_v4.7-stable_win64.exe --path .
 ```
 
-## UIテスト
+## UI tests
 
-NUnitから`Gua.Testing.Godot`を使い、実際のGodotプロセスとSemantic UI Treeを操作します。
+The NUnit tests use `Gua.Testing.Godot` to operate a real Godot process through its Semantic UI Tree.
 
 ```powershell
 $env:GODOT_EXECUTABLE = "Godot_v4.7-stable_win64_console.exe"
 dotnet test tests\GuaUiLab.Tests.csproj
 ```
 
-失敗時のGua UI Tree、ログ、Godot標準出力・標準エラーなどは、テスト出力ディレクトリの`artifacts/gua`に保存されます。
+On failure, the Gua UI Tree, logs, and Godot standard output and standard error are saved under `artifacts/gua` in the test output directory.
 
-### Visual / Recording検証
+### Visual and recording validation
 
-`Gua.Testing.Visual` で初期画面をレビュー済みPNGと比較し、画像欠落、配置ずれ、意図しないオーバーレイを検出します。基準画像を意図的に更新する場合だけ、差分を確認した上で次を実行します。
+`Gua.Testing.Visual` compares the initial screen with a reviewed PNG baseline to detect missing images, layout shifts, and unintended overlays. Only update the baseline intentionally after reviewing the difference:
 
 ```powershell
 $env:GUA_UPDATE_BASELINES = "1"
@@ -40,25 +43,25 @@ dotnet test tests\GuaUiLab.Tests.csproj --filter TitleScreenMatchesReviewedVisua
 Remove-Item Env:GUA_UPDATE_BASELINES
 ```
 
-`Gua.Testing.Recording` では `End` → `Cancel` のセマンティック操作を実際に記録し、JSONへの保存・再読込・同一Godotセッションへの再生まで検証します。成功時の記録JSONも `artifacts/gua/recordings` に保存されます。
+`Gua.Testing.Recording` records real semantic interactions for `End` → `Cancel`, saves them to JSON, reloads them, and replays them in the same Godot session. Successful recording files are also saved under `artifacts/gua/recordings`.
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2のGodot Action（`link1345/gua-tester/godot@v2`）を使用し、`master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v0.15.0の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
+`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2 (`link1345/gua-tester/godot@v2`) to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v0.15.0 add-on used by the NuGet packages, so the repository does not need to include its DLLs.
 
-### Visual差分Viewer
+### Visual difference viewer
 
-pull requestでVisual比較が失敗すると、`visual-report@v2`が`comparison.json`とPNGをAstro製の静的Viewerへ変換し、`gua-visual-report`という通常のActions artifactとして保存します。ViewerにはExpected／Diff／Actualの3列表示とExpected／Actual比較スライダーがあります。
+When a visual comparison fails in a pull request, `visual-report@v2` turns `comparison.json` and its PNGs into an Astro-based static viewer and stores it as the normal `gua-visual-report` Actions artifact. The viewer provides three-column Expected, Diff, and Actual images as well as an Expected/Actual comparison slider.
 
-`master`へのpushと手動実行では、最新結果をGitHub Pages artifactとしてアップロードし、専用jobからPagesへdeployします。repositoryのPages sourceを事前に **GitHub Actions** へ設定してください。
+On pushes to `master` and manual runs, the latest report is uploaded as a GitHub Pages artifact and deployed by a dedicated job. Configure the repository's Pages source as **GitHub Actions** first.
 
-手動実行で`visual-report-demo`を有効にすると、`VisualReportViewerDemoProducesPixelDifferenceArtifact`が同じ解像度のtitle画面とloading画面を比較し、意図的なpixel差分を生成します。テスト自体は期待した比較失敗を検証して成功し、workflowはViewerへ渡すoutcomeだけを`failure`にするため、3画像とスライダーを実際に確認できます。
+Enable `visual-report-demo` in a manual run to have `VisualReportViewerDemoProducesPixelDifferenceArtifact` compare same-size title and loading screens and generate an intentional pixel difference. The test succeeds after verifying the expected comparison failure, while the workflow marks only the outcome passed to the viewer as `failure`, so all three images and the slider can be inspected.
 
-通常artifactをダウンロードしてローカル確認する場合、Viewerは相対URLの`report.json`を読み込むため、`index.html`を直接開かず展開先をHTTP配信します。
+To inspect a downloaded artifact locally, serve the extracted directory over HTTP because the viewer loads `report.json` through a relative URL instead of opening `index.html` directly:
 
 ```powershell
 python -m http.server 8000
 ```
 
 > [!WARNING]
-> screenshotにはゲーム画面へ描画された秘密情報や個人情報が含まれる可能性があります。特にpublic repositoryでPagesを有効にする前に、公開内容を確認してください。
+> Screenshots may contain secrets or personal information rendered inside the game. Review what will be published before enabling Pages, especially in a public repository.
