@@ -11,7 +11,7 @@ const LOADING_DURATION_SECONDS := 6.0
 @onready var back_button: Button = %BackButton
 @onready var exit_confirmation: Control = %ExitConfirmation
 
-var gua: GuaAutoAdapter
+var gua := GuaAutoAdapterScript.new()
 var current_screen := "page1"
 var loading_generation := 0
 
@@ -19,8 +19,8 @@ var loading_generation := 0
 func _ready() -> void:
 	get_viewport().size_changed.connect(_update_responsive_layout)
 	_update_responsive_layout()
-	gua = GuaAutoAdapterScript.new()
 	_show_page_one()
+	gua.update(current_screen)
 	var bridge_port := _resolve_gua_bridge_port()
 	if gua.start_inspector_bridge(bridge_port):
 		print("Gua bridge listening at %s" % gua.inspector_bridge_url())
