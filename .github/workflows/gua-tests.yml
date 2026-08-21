@@ -18,15 +18,38 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Run Godot Gua tests
-        # gua-tester has not published a v1 tag yet, so pin the current main commit.
-        uses: link1345/gua-tester@c6064fa9c2ca6d65e5d0d309f214cecfdc43bd22
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
         with:
-          project-path: .
-          test-project: tests/GuaUiLab.Tests.csproj
+          dotnet-version: 10.0.x
+
+      - name: Set up Godot
+        uses: link1345/gua-tester/setup-godot@c6064fa9c2ca6d65e5d0d309f214cecfdc43bd22
+        with:
           godot-version: "4.7"
           godot-status: stable
+
+      - name: Link Gua addon
+        uses: link1345/gua-tester/link-gua-gdscript-addon@c6064fa9c2ca6d65e5d0d309f214cecfdc43bd22
+        with:
+          project-path: .
           gua-plugin-tag: gua-v0.15.0
+
+      - name: Prepare Godot project imports
+        shell: pwsh
+        # Keep the editor alive long enough for its asynchronous first scan to
+        # register GuaAutoAdapter and finish importing project resources.
+        run: '& "$env:GODOT_EXECUTABLE" --headless --editor --path "." --quit-after 300'
+
+      - name: Restore tests
+        shell: pwsh
+        run: dotnet restore tests/GuaUiLab.Tests.csproj
+
+      - name: Run Godot Gua tests
+        shell: pwsh
+        env:
+          GUA_VISUAL_VARIANT: windows-godot-4.7-gl-compatibility
+        run: dotnet test tests/GuaUiLab.Tests.csproj --configuration Release --no-restore --logger "trx;LogFileName=godot-gdscript.trx"
 
       - name: Upload test diagnostics
         if: ${{ always() }}
