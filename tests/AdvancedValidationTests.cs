@@ -10,9 +10,11 @@ namespace GuaUiLab.Tests;
 [NonParallelizable]
 public sealed class AdvancedValidationTests
 {
+    private const int RenderedWidth = 541;
+    private const int RenderedHeight = 700;
     private static readonly string VisualVariant =
         Environment.GetEnvironmentVariable("GUA_VISUAL_VARIANT")
-        ?? "windows-godot-4.7-gl-compatibility";
+        ?? "windows-godot-4.7-gl-compatibility-541x700";
     private static readonly TimeSpan ShortTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(20);
     private static readonly string ProjectRoot = FindProjectRoot();
@@ -50,8 +52,8 @@ public sealed class AdvancedValidationTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Matched, Is.True);
-            Assert.That(screenshot.Width, Is.EqualTo(541));
-            Assert.That(screenshot.Height, Is.EqualTo(857));
+            Assert.That(screenshot.Width, Is.EqualTo(RenderedWidth));
+            Assert.That(screenshot.Height, Is.EqualTo(RenderedHeight));
         });
     }
 
@@ -130,6 +132,14 @@ public sealed class AdvancedValidationTests
             TeardownResetPolicy = GuaResetPolicy.Strict,
             CaptureDiagnosticsBeforeTeardown = true,
             CleanupAfterLeakReport = true,
+            AdditionalArguments = rendered
+                ? [
+                    "--resolution",
+                    $"{RenderedWidth}x{RenderedHeight}",
+                    "--position",
+                    "0,0",
+                ]
+                : [],
         };
 
         return rendered

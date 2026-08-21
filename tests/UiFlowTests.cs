@@ -11,6 +11,10 @@ namespace GuaUiLab.Tests;
 [NonParallelizable]
 public sealed class UiFlowTests
 {
+    private const int WideRenderedWidth = 1000;
+    private const int WideRenderedHeight = 700;
+    private const double DesignWidth = 541.0;
+    private const double DesignHeight = 857.0;
     private static readonly TimeSpan ShortTimeout = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan LoadingTimeout = TimeSpan.FromSeconds(8);
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(20);
@@ -126,7 +130,13 @@ public sealed class UiFlowTests
     {
         using var host = StartHost(
             rendered: true,
-            additionalArguments: ["--resolution", "1000x857"]);
+            additionalArguments:
+            [
+                "--resolution",
+                $"{WideRenderedWidth}x{WideRenderedHeight}",
+                "--position",
+                "0,0",
+            ]);
         var diagnostics = CreateDiagnostics(host);
         using var assertions = GuaAssertionScope.Use(new GuaAssertionOptions
         {
@@ -143,8 +153,8 @@ public sealed class UiFlowTests
         var screenshot = host.GetScreenshot();
         Assert.Multiple(() =>
         {
-            Assert.That(screenshot.Width, Is.EqualTo(1000));
-            Assert.That(screenshot.Height, Is.EqualTo(857));
+            Assert.That(screenshot.Width, Is.EqualTo(WideRenderedWidth));
+            Assert.That(screenshot.Height, Is.EqualTo(WideRenderedHeight));
         });
 
         using var tree = JsonDocument.Parse(host.Context.GetUiTreeJson());
@@ -152,13 +162,20 @@ public sealed class UiFlowTests
             .EnumerateArray()
             .Single(node => node.GetProperty("id").GetString() == "root");
         var bounds = root.GetProperty("bounds");
+        var expectedScale = Math.Min(
+            WideRenderedWidth / DesignWidth,
+            WideRenderedHeight / DesignHeight);
+        var expectedRenderedWidth = DesignWidth * expectedScale;
+        var expectedRenderedHeight = DesignHeight * expectedScale;
+        var expectedX = (WideRenderedWidth - expectedRenderedWidth) * 0.5;
+        var expectedY = (WideRenderedHeight - expectedRenderedHeight) * 0.5;
 
         Assert.Multiple(() =>
         {
-            Assert.That(bounds.GetProperty("x").GetDouble(), Is.EqualTo(229.5).Within(1.0));
-            Assert.That(bounds.GetProperty("y").GetDouble(), Is.EqualTo(0.0).Within(1.0));
-            Assert.That(bounds.GetProperty("w").GetDouble(), Is.EqualTo(541.0).Within(1.0));
-            Assert.That(bounds.GetProperty("h").GetDouble(), Is.EqualTo(857.0).Within(1.0));
+            Assert.That(bounds.GetProperty("x").GetDouble(), Is.EqualTo(expectedX).Within(1.0));
+            Assert.That(bounds.GetProperty("y").GetDouble(), Is.EqualTo(expectedY).Within(1.0));
+            Assert.That(bounds.GetProperty("w").GetDouble(), Is.EqualTo(DesignWidth).Within(1.0));
+            Assert.That(bounds.GetProperty("h").GetDouble(), Is.EqualTo(DesignHeight).Within(1.0));
         });
     }
 

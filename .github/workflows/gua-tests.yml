@@ -20,7 +20,7 @@ jobs:
       - name: Run Godot Gua tests
         uses: link1345/gua-tester@v1.3
         env:
-          GUA_VISUAL_VARIANT: windows-godot-4.7-gl-compatibility
+          GUA_VISUAL_VARIANT: windows-godot-4.7-gl-compatibility-541x700
         with:
           project-path: .
           test-project: tests/GuaUiLab.Tests.csproj
