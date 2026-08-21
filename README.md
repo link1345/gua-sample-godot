@@ -44,11 +44,11 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) を使用し、`master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v0.15.0の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
+`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2のGodot Action（`link1345/gua-tester/godot@v2`）を使用し、`master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v0.15.0の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
 
 ### Visual差分Viewer
 
-pull requestでVisual比較が失敗すると、`visual-report@v1.4`が`comparison.json`とPNGをAstro製の静的Viewerへ変換し、`gua-visual-report`という通常のActions artifactとして保存します。ViewerにはExpected／Diff／Actualの3列表示とExpected／Actual比較スライダーがあります。
+pull requestでVisual比較が失敗すると、`visual-report@v2`が`comparison.json`とPNGをAstro製の静的Viewerへ変換し、`gua-visual-report`という通常のActions artifactとして保存します。ViewerにはExpected／Diff／Actualの3列表示とExpected／Actual比較スライダーがあります。
 
 `master`へのpushと手動実行では、最新結果をGitHub Pages artifactとしてアップロードし、専用jobからPagesへdeployします。repositoryのPages sourceを事前に **GitHub Actions** へ設定してください。
 
