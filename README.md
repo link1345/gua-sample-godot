@@ -49,11 +49,11 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2 (`link1345/gua-tester/godot@v2`) to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v0.15.0 add-on used by the NuGet packages, so the repository does not need to include its DLLs.
+`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v2.1 (`link1345/gua-tester/godot@v2.1`) to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v0.15.0 add-on used by the NuGet packages, so the repository does not need to include its DLLs.
 
 ### Visual difference viewer
 
-When a visual comparison fails in a pull request, `visual-report@v2` turns `comparison.json` and its PNGs into an Astro-based static viewer and stores it as the normal `gua-visual-report` Actions artifact. The viewer provides three-column Expected, Diff, and Actual images as well as an Expected/Actual comparison slider.
+When a visual comparison fails in a pull request, `visual-report@v2.1` turns `comparison.json` and its PNGs into an Astro-based static viewer and stores it as the normal `gua-visual-report` Actions artifact. The viewer provides three-column Expected, Diff, and Actual images as well as an Expected/Actual comparison slider.
 
 On pushes to `master` and manual runs, the latest report is uploaded as a GitHub Pages artifact and deployed by a dedicated job. Configure the repository's Pages source as **GitHub Actions** first.
 
