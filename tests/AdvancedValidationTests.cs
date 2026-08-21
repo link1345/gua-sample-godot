@@ -39,10 +39,7 @@ public sealed class AdvancedValidationTests
             new ScreenshotOptions
             {
                 BaselineDirectory = Path.Combine(ProjectRoot, "tests", "baselines"),
-                ArtifactDirectory = Path.Combine(
-                    TestContext.CurrentContext.WorkDirectory,
-                    "artifacts",
-                    "gua"),
+                ArtifactDirectory = Path.Combine(ProjectRoot, "artifacts", "gua"),
                 BaselineVariant = VisualVariant,
                 PixelThreshold = 0.02f,
                 MaxDifferentPixelRatio = 0.001,
@@ -54,6 +51,84 @@ public sealed class AdvancedValidationTests
             Assert.That(result.Matched, Is.True);
             Assert.That(screenshot.Width, Is.EqualTo(RenderedWidth));
             Assert.That(screenshot.Height, Is.EqualTo(RenderedHeight));
+        });
+    }
+
+    [Test]
+    public async Task VisualReportViewerDemoProducesPixelDifferenceArtifact()
+    {
+        if (Environment.GetEnvironmentVariable("GUA_VISUAL_REPORT_DEMO") != "1")
+        {
+            Assert.Ignore("Set GUA_VISUAL_REPORT_DEMO=1 from workflow_dispatch to build the viewer demo.");
+        }
+
+        using var host = StartHost(rendered: true);
+        using var assertions = CreateAssertionScope(host);
+        await GuaAssertions.WaitForVisibleAsync(
+            host.Context,
+            "start",
+            timeout: ShortTimeout,
+            pollInterval: PollInterval);
+        await host.WaitForScreenshotAsync(ShortTimeout);
+        var titleScreenshot = host.GetScreenshot().DecodePng();
+
+        var baselineDirectory = Path.Combine(
+            TestContext.CurrentContext.WorkDirectory,
+            "visual-report-demo-baselines");
+        var artifactDirectory = Path.Combine(ProjectRoot, "artifacts", "gua");
+        const string comparisonName = "visual-report-viewer-demo";
+        const string variant = "windows-godot-4.7-gl-compatibility-541x700";
+        var comparisonArtifactDirectory = Path.Combine(artifactDirectory, comparisonName);
+
+        await GuaVisualAssertions.ExpectScreenshotAsync(
+            host.Context,
+            comparisonName,
+            new ScreenshotOptions
+            {
+                BaselineDirectory = baselineDirectory,
+                ArtifactDirectory = artifactDirectory,
+                BaselineVariant = variant,
+                UpdateBaselines = true,
+            });
+
+        await GuaAssertions.GetById(host.Context, "start").ClickAsync();
+        await GuaAssertions.WaitForVisibleAsync(
+            host.Context,
+            "loading",
+            timeout: ShortTimeout,
+            pollInterval: PollInterval);
+        var screenshotDeadline = DateTimeOffset.UtcNow + ShortTimeout;
+        while (host.GetScreenshot().DecodePng().SequenceEqual(titleScreenshot))
+        {
+            if (DateTimeOffset.UtcNow >= screenshotDeadline)
+            {
+                Assert.Fail("The loading screen did not publish a different viewport screenshot.");
+            }
+            await Task.Delay(PollInterval);
+        }
+
+        var failure = Assert.ThrowsAsync<InvalidOperationException>(() =>
+            GuaVisualAssertions.ExpectScreenshotAsync(
+                host.Context,
+                comparisonName,
+                new ScreenshotOptions
+                {
+                    BaselineDirectory = baselineDirectory,
+                    ArtifactDirectory = artifactDirectory,
+                    BaselineVariant = variant,
+                    PixelThreshold = 0.02f,
+                    MaxDifferentPixelRatio = 0.001,
+                }));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(failure!.Message, Does.Contain("Screenshot comparison failed"));
+            Assert.That(
+                Directory.GetFiles(comparisonArtifactDirectory, "comparison.json", SearchOption.AllDirectories),
+                Is.Not.Empty);
+            Assert.That(
+                Directory.GetFiles(comparisonArtifactDirectory, "diff.png", SearchOption.AllDirectories),
+                Is.Not.Empty);
         });
     }
 
