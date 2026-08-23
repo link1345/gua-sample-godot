@@ -36,7 +36,7 @@ jobs:
           test-project: tests/GuaUiLab.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
-          gua-plugin-tag: gua-v1.18.0
+          gua-plugin-tag: gua-v0.18.0
 
       - name: Normalize visual report outcome
         id: visual-outcome
