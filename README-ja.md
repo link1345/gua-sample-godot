@@ -49,7 +49,7 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v3.1のGodot Action（`link1345/gua-tester/godot@v3.1`）を使用し、`master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v1.0.4の公開アドオンをダウンロードするため、DLLをリポジトリに含める必要はありません。
+`.github/workflows/gua-tests.yml` で [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v3.1のGodot Action（`link1345/gua-tester/godot@v3.1`）をUbuntu x64 runner上で使用し、`master` へのpushとpull requestで実際のGodotプロセスを操作するUIテストを実行します。CIではNuGetパッケージと同じGua v1.0.4の公開アドオンをダウンロードするため、native libraryをリポジトリに含める必要はありません。
 
 ### Visual差分Viewer
 

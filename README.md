@@ -49,7 +49,7 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v3.1 (`link1345/gua-tester/godot@v3.1`) to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v1.0.4 add-on used by the NuGet packages, so the repository does not need to include its DLLs.
+`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v3.1 (`link1345/gua-tester/godot@v3.1`) on an Ubuntu x64 runner to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v1.0.4 add-on used by the NuGet packages, so the repository does not need to include its native libraries.
 
 ### Visual difference viewer
 

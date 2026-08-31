@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     outputs:
       pages-ready: ${{ steps.pages-report.outcome == 'success' }}
@@ -29,7 +29,7 @@ jobs:
         id: gua-tests
         uses: link1345/gua-tester/godot@v3.1
         env:
-          GUA_VISUAL_VARIANT: windows-godot-4.7-gl-compatibility-541x700
+          GUA_VISUAL_VARIANT: linux-godot-4.7-gl-compatibility-541x700
           GUA_VISUAL_REPORT_DEMO: ${{ inputs.visual-report-demo && '1' || '0' }}
         with:
           project-path: .
