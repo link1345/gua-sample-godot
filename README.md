@@ -18,7 +18,7 @@ This two-screen UI sample runs on Godot 4.7. `Start` opens the second screen, wh
 
 The window is resizable. The UI scales uniformly while preserving its 541×857 design aspect ratio, and any space outside that ratio is rendered as black letterboxing.
 
-UI automation uses the [Gua](https://github.com/link1345/gua) v1.0.4 Godot GDScript add-on. At runtime, the Gua bridge listens on `ws://127.0.0.1:8765` and automatically exposes the standard Godot Control tree.
+UI automation uses the [Gua](https://github.com/link1345/gua) v1.0.7 Godot GDScript add-on. At runtime, the Gua bridge listens on `ws://127.0.0.1:8765` and automatically exposes the standard Godot Control tree.
 
 ```powershell
 Godot_v4.7-stable_win64.exe --path .
@@ -49,7 +49,7 @@ Remove-Item Env:GUA_UPDATE_BASELINES
 
 ## GitHub Actions
 
-`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v3.1 (`link1345/gua-tester/godot@v3.1`) on an Ubuntu x64 runner to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v1.0.4 add-on used by the NuGet packages, so the repository does not need to include its native libraries.
+`.github/workflows/gua-tests.yml` uses the Godot Action from [`link1345/gua-tester`](https://github.com/link1345/gua-tester) v3.1 (`link1345/gua-tester/godot@v3.1`) on an Ubuntu x64 runner to run UI tests against a real Godot process on pushes to `master` and on pull requests. CI downloads the same published Gua v1.0.7 add-on used by the NuGet packages, so the repository does not need to include its native libraries.
 
 ### Visual difference viewer
 
